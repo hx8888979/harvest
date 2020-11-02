@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="generator" content="Three.js Editor">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+		<style>
+			@font-face {
+				font-family: "troika";
+				src: url("/font/troika.otf")  format("opentype");
+			}
+			html {
+				margin: 0px;
+				height: 100%;
+				width: 100%;
+			}
+			body {
+				font-family: "troika";
+				font-size: 11px;
+				background-color: #b4e2d3;
+				margin: 0px;
+				height: 100%;
+				overflow: hidden;
+				-webkit-touch-callout:none;
+				-webkit-user-select:none;
+				-khtml-user-select:none;
+				-moz-user-select:none;
+				-ms-user-select:none;
+				user-select:none;
+				pointer-events: none;
+			}
+			.container {
+				position: absolute;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+				top: 0;
+				left: 0;
+				height: 100%;
+				width: 100%;
+			}
+			.font-stone {
+				color: #977965;
+				text-shadow: 0 0.03em #dfd7cb, 0 -0.01em black;
+			}
+			#loading {
+				color: white;
+				font-size: 15px;
+				line-height: 3em;
+				justify-content: center;
+			}
+			.button-group {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			.button {
+				width: 180px;
+				height: 52px;
+				font-size: 2em;
+				background: url("button.png") no-repeat center;
+				background-size: contain;
+				pointer-events: auto;
+				line-height: 52px;
+				color: white;
+				display: block;
+			}
+			.button:hover {
+				transform: translate(2px, 2px);
+			}
+			.button:active {
+				transform: translate(2px, 2px) scale(0.95, 0.95);
+			}
+			.star {
+				width: 50px;
+				height: 50px;
+				background: url("star.png") no-repeat center;
+				background-size: contain;
+			}
+			.fade-in {
+				opacity: 0;
+				transition: opacity 1.5s ease-in-out, transform 1s ease-in-out;
+			}
+			.d-n {
+				display: none;
+			}
+			canvas {
+				display: block;
+			}
+		</style>
+	</head>
+	<body ontouchstart="">
+		<div id="ui" class="container d-n">
+			<div id="menu" class="fade-in" style="opacity: 1; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+				<div style="width: 300px; height: 425.65px; background: url('menu.png') no-repeat center; background-size: contain;">
+					<div id="menu-main">
+						<img style="width: 240px; padding: 18px 0 0 25px;" src="logo.png" />
+						<div class="button-group" style="margin:50px 0 0 10px;">
+							<a class="button" style="margin-bottom: 20px;" onclick="onPlayGame()">Play Game</a>
+							<a class="button" onclick="switchTutorial(false)">Tutorial</a>
+						</div>
+					</div>
+					<div id="menu-tutorial" class="d-n">
+						<div class="font-stone" style="font-size: 1.4em; text-align: left; padding: 30px 35px 0 50px;">
+							The Game Has 2 phrases</br>- Start:</br>Select one of Chesses you want and remove from the board immediately.</br>
+							- Move:</br>Select any chess which has a adjacent chess. It can jump to the empty slot the adjacent chess is next to, and the adjacent chess will be removed.</br>
+							</br>Target:</br>Keep removing Chesses until there is only one left. Otherwise, you Lost!
+						</div>
+						<div class="button-group" style="margin:10px 0 0 20px;">
+							<a class="button" onclick="switchTutorial(true)">Back</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="result" class="d-n fade-in" style="height: 100%; flex-direction: column; justify-content: center; transform: translateY(15px);">
+				<div style="width: 350px; height: 320px; background: url('result.png') no-repeat center; background-size: contain;">
+					<div id="failed" style="height: 210px; text-align: center;" class="d-n">
+						<div class="button-group font-stone" style="font-size: 3em; padding: 115px 0 10px 0;">Failed</div>
+						<div style="font-size: 2em; color: white">no chess can move</div>
+					</div>
+					<div id="win" style="height: 210px; text-align: center;" class="d-n">
+						<div style="width: 150px; height: 43px; background: url('clear.png') center no-repeat; background-size: contain; margin: auto;"></div>
+						<div class="button-group" style="flex-direction: row; justify-content: space-between; width: 162px; height:100px; margin: auto; padding-top: 65px;">
+							<div class="star"></div><div class="star" style="width: 70px; height: 70px; align-self: start;"></div><div class="star"></div>
+						</div>
+					</div>
+					<div class="button-group" style="flex-direction: row; justify-content: space-between; width: 150px; margin: auto;">
+						<a id="tutorial" class="button" style="background-image: url(retry.png); width: 65px;" onclick="onRetryGame()"></a>
+						<a id="tutorial" class="button" style="background-image: url(mainmenu.png); width: 65px;" onclick="backMenu()"></a>
+					</div>
+				</div>
+			</div>
+			<div id="top" class="fade-in d-n" style="opacity: 1; width: 350px; height: 61px; position: fixed; background: url('toppanel.png') no-repeat center; background-size: contain;">
+				<div id="timer" style="position: absolute; top: 20px; left: 92px; width: 60px; height: 20px; font-size: 1.5em; color:white">00</div>
+				<div class="container" style="flex-direction: row; justify-content: flex-end;">
+					<div class="button-group" style="flex-direction: row; justify-content: space-between; width: 100px; padding:0 65px 5px 0;">					
+						<a id="tutorial" class="button" style="background-image: url(retry.png); width: 40px;" onclick="onRetryGame()"></a>
+						<a id="tutorial" class="button" style="background-image: url(mainmenu.png); width: 40px;" onclick="backMenu()"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="viewport"></div>
+		<div id="ui-loading" class="container fade-in" style="opacity: 1; background-color: #b4e2d3;">
+			<img class="fade-in" style="width: 80%; max-width: 500px; padding-top: 50px;" src="logo.png" onload="this.style.opacity=1; this.style.transform='translate(0,15px)'" />
+			<div id="loading" style="margin-top: 10%;">
+				<div>Loading...</div>
+				<progress id="progress" value="0" max="100"></progress>
+			</div>
+			<a id="play" class="button d-n" style="margin-top: 10%; width: 84px; height: 80px; background-image: url('play.png')"></a>
+		</div>
+		<script type="module">
+
+			import * as THREE from './js/three.module.js';
+			import { APP } from './js/app.js';
+			import { VRButton } from './js/VRButton.js';
+
+			window.THREE = THREE; // Used by APP Scripts.
+			window.VRButton = VRButton; // Used by APP Scripts.
+
+			const progress = document.getElementById("progress");
+
+			var loader = new THREE.FileLoader();
+			loader.load( 'app.json', 
+			function ( text ) {
+				var loader = new THREE.AudioLoader();
+				loader.load(
+					'bgm.dat',
+					function (audioBuffer) {
+						const audioListener = new THREE.AudioListener()
+						const bgm = new THREE.Audio( audioListener );
+						bgm.setBuffer( audioBuffer );
+						bgm.setLoop(true);
+						document.getElementById("loading").style.display = 'none';
+						const uiLayer = document.getElementById("ui-loading");
+						const button = document.getElementById("play");
+						button.style.display = "flex";
+						button.onclick = function() {
+							button.onclick = null;
+							setTimeout(()=>{
+								var player = new APP.Player();
+								player.load( JSON.parse( text ), audioListener, bgm);
+								player.setSize( window.innerWidth, window.innerHeight );
+								player.play();
+
+								document.getElementById("ui").style.display = "flex"
+								uiLayer.style.opacity = 0;
+								setTimeout(()=>{document.body.removeChild(uiLayer);}, 1500);
+								window.addEventListener( 'resize', function () {
+									player.setSize( window.innerWidth, window.innerHeight );
+								} );
+							}, 1);
+						};
+						uiLayer.appendChild(button);
+					},
+					function (xhr) {
+						progress.value = (xhr.loaded / xhr.total * 30) + 70;
+					}
+				);
+			},
+			function ( xhr ) {
+				progress.value = (xhr.loaded / xhr.total * 70);
+			}, );
+
+		</script>
+
+		<script>
+			let onUI = false;
+			let game = null;
+			let timer = null;
+
+			function onPlayGame() {
+				if(onUI) return;
+				onUI = true;
+				document.getElementById("menu").style.opacity=0;
+				setupTop(true);
+				game.restarGame();
+				setTimeout(()=>{document.getElementById("menu").style.display = 'none'; onUI = false;}, 1500);
+			}
+			function switchTutorial(showMenu) {
+				if(onUI) return;
+				onUI = true;
+				document.getElementById('menu-main').style.display = showMenu ? null : 'none'; 
+				document.getElementById('menu-tutorial').style.display = showMenu ? null : 'block';
+				onUI = false;
+			}
+			function setupTop(show) {
+				const top = document.getElementById("top");
+				if(timer) clearInterval(timer);
+				if(show) {
+					const startTime = Date.now();
+					const timerUI = document.getElementById("timer");
+					timerUI.innerText = "00";
+					timer = setInterval(()=>{
+						let diff = (Date.now() - startTime) / 1000;
+						let output = "";
+						if(diff >= 3600) output += String(Math.floor(diff / 3600)).padStart(2,"0") + ":";
+						if(diff >= 60) {
+							diff %= 3600;
+							output += String(Math.floor(diff / 60)).padStart(2,"0") + ":" + String(Math.floor(diff % 60)).padStart(2,"0");
+						} else {
+							output = String(Math.floor(diff)).padStart(2,"0");
+						} 
+						
+						timerUI.innerText = output;
+					}, 1000)
+					top.style.transform = "translateY(-61px)";
+					top.style.display = "flex";
+					setTimeout(()=>top.style.transform=null, 10);
+				}
+				else {
+					top.style.transform = "translateY(-61px)";
+					setTimeout(()=>document.getElementById("top").style.display = null, 1000);
+				}
+			}
+			function onRetryGame() {
+				if(onUI) return;
+				onUI = true;
+				document.getElementById("result").style.display = null;
+				setupTop(true);
+				game.restarGame();
+				setTimeout(()=>onUI = false, 1000);
+			}
+			function backMenu() {
+				if(onUI) return;
+				onUI = true;
+				document.getElementById("result").style.display = null;
+				document.getElementById("menu").style.display = 'flex';
+				setupTop(false);
+				setTimeout(()=>{document.getElementById("menu").style.opacity=1;}, 10);
+				setTimeout(()=>onUI = false, 1000);
+			}
+			function onGUI() {
+				if(game.step === 2) {
+					game.step = -100;
+					onUI = true;
+					setupTop(false);
+					setTimeout(()=>onUI = false, 1000);
+					if(game.isWin) {
+						document.getElementById("failed").style.display = null;
+						document.getElementById("win").style.display = "block";
+					} else {
+						document.getElementById("failed").style.display = "block";
+						document.getElementById("win").style.display = null;
+					}
+					const resultDiv = document.getElementById("result")
+					resultDiv.style.opacity = 0;
+					resultDiv.style.transform ='translateY(15px)';
+					resultDiv.style.display = "flex";
+					setTimeout(()=>{resultDiv.style.opacity=1; resultDiv.style.transform=null;}, 10);
+					
+				}
+			}
+			window.onGameLoaded = (g) => {g.step=-100; game = g; g.setUICallback(onGUI)};
+		</script>
+	</body>
+</html>
